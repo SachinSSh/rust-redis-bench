@@ -1,3 +1,4 @@
+```bash
 # terminal 1 - start redis
 redis-server
 
@@ -13,6 +14,7 @@ cargo run --release
 # metrics SSE at http://localhost:3000/api/metrics/stream
 
 # terminal 3 (optional) or just use the dashboard
-# curl -X POST http://localhost:3000/api/benchmark/start \
+curl -X POST http://localhost:3000/api/benchmark/start \
     -H "Content-Type: application/json" \
     -d '{"concurrency": 20, "duration_secs": 60, "read_pct": 70}'
+```
