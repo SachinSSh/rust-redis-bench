@@ -1,7 +1,7 @@
 [package]
 name    = "rust-redis-bench"
 version = "0.1.0"
-edition = "2026"
+edition = "2021"
 creator = "sachinSSh"
 
 [dependencies]
