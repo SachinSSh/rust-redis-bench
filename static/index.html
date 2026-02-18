@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Rust ↔ Redis Latency Observatory</title>
+        <link rel="stylesheet" href="/style.css" />
+        <!-- Chart.js from CDN -->
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+    </head>
+    <body>
+        <!-- ═══ HEADER ═══════════════════════════════════════════════ -->
+        <header class="header">
+            <div class="header-left">
+                <h1>🔬 Rust ↔ Redis Latency Observatory</h1>
+            </div>
+            <div class="header-right">
+                <span class="status-dot" id="statusDot"></span>
+                <span class="status-text" id="statusText">IDLE</span>
+            </div>
+        </header>
+
+        <!-- ═══ CONTROLS BAR ═════════════════════════════════════════ -->
+        <section class="controls">
+            <div class="control-group">
+                <label for="concurrency">Concurrency</label>
+                <input
+                    type="number"
+                    id="concurrency"
+                    value="10"
+                    min="1"
+                    max="500"
+                />
+            </div>
+            <div class="control-group">
+                <label for="duration">Duration (s)</label>
+                <input
+                    type="number"
+                    id="duration"
+                    value="30"
+                    min="1"
+                    max="300"
+                />
+            </div>
+            <div class="control-group">
+                <label for="readPct">Read %</label>
+                <input
+                    type="number"
+                    id="readPct"
+                    value="70"
+                    min="0"
+                    max="100"
+                />
+            </div>
+            <div class="control-buttons">
+                <button
+                    id="btnStart"
+                    class="btn btn-start"
+                    onclick="startBenchmark()"
+                >
+                    ▶ Start
+                </button>
+                <button
+                    id="btnStop"
+                    class="btn btn-stop"
+                    onclick="stopBenchmark()"
+                    disabled
+                >
+                    ⏹ Stop
+                </button>
+                <button
+                    id="btnReset"
+                    class="btn btn-reset"
+                    onclick="resetDashboard()"
+                >
+                    🔄 Reset
+                </button>
+            </div>
+        </section>
+
+        <!-- ═══ KPI CARDS ════════════════════════════════════════════ -->
+        <section class="kpi-row">
+            <div class="kpi-card">
+                <div class="kpi-label">Total Requests</div>
+                <div class="kpi-value" id="kpiTotal">0</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Throughput</div>
+                <div class="kpi-value" id="kpiRps">0 <small>req/s</small></div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Reads / Writes</div>
+                <div class="kpi-value" id="kpiRW">0 / 0</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Errors</div>
+                <div class="kpi-value kpi-errors" id="kpiErrors">0</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Elapsed</div>
+                <div class="kpi-value" id="kpiElapsed">0.0s</div>
+            </div>
+        </section>
+
+        <!-- ═══ CHARTS — ROW 1 ═══════════════════════════════════════ -->
+        <section class="chart-row">
+            <div class="chart-card chart-wide">
+                <h3>Live Latency Timeline</h3>
+                <canvas id="timelineChart"></canvas>
+            </div>
+        </section>
+
+        <!-- ═══ CHARTS — ROW 2 ═══════════════════════════════════════ -->
+        <section class="chart-row chart-row-3">
+            <div class="chart-card">
+                <h3>📊 Percentiles (μs)</h3>
+                <canvas id="percentileChart"></canvas>
+            </div>
+            <div class="chart-card">
+                <h3>E2E Distribution</h3>
+                <canvas id="distChart"></canvas>
+            </div>
+            <div class="chart-card">
+                <h3>Time Breakdown</h3>
+                <canvas id="donutChart"></canvas>
+            </div>
+        </section>
+
+        <!-- ═══ SUMMARY TABLE + LIVE FEED ═══════════════════════════ -->
+        <section class="chart-row chart-row-2">
+            <div class="chart-card">
+                <h3>Summary Statistics</h3>
+                <div class="table-wrap">
+                    <table id="summaryTable">
+                        <thead>
+                            <tr>
+                                <th>Metric</th>
+                                <th>Min</th>
+                                <th>Mean</th>
+                                <th>P50</th>
+                                <th>P95</th>
+                                <th>P99</th>
+                                <th>Max</th>
+                                <th>Count</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr id="rowRedisRead">
+                                <td class="metric-name">Redis READ</td>
+                                <td>–</td>
+                                <td>–</td>
+                                <td>–</td>
+                                <td>–</td>
+                                <td>–</td>
+                                <td>–</td>
+                                <td>–</td>
+                            </tr>
+                            <tr id="rowRedisWrite">
+                                <td class="metric-name">Redis WRITE</td>
+                                <td>–</td>
+                                <td>–</td>
+                                <td>–</td>
+                                <td>–</td>
+                                <td>–</td>
+                                <td>–</td>
+                                <td>–</td>
+                            </tr>
+                            <tr id="rowRustOverhead">
+                                <td class="metric-name">Rust Overhead</td>
+                                <td>–</td>
+                                <td>–</td>
+                                <td>–</td>
+                                <td>–</td>
+                                <td>–</td>
+                                <td>–</td>
+                                <td>–</td>
+                            </tr>
+                            <tr id="rowE2E">
+                                <td class="metric-name">E2E Round Trip</td>
+                                <td>–</td>
+                                <td>–</td>
+                                <td>–</td>
+                                <td>–</td>
+                                <td>–</td>
+                                <td>–</td>
+                                <td>–</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <h3>Live Request Feed</h3>
+                <div class="feed-container" id="feedContainer">
+                    <div class="feed-placeholder">
+                        Waiting for benchmark to start...
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══ FOOTER ═══════════════════════════════════════════════ -->
+        <footer class="footer">
+            Rust ↔ Redis Latency Observatory &middot; HdrHistogram &middot;
+            Chart.js &middot; Axum &middot; SSE
+        </footer>
+
+        <script src="/app.js"></script>
+    </body>
+</html>

@@ -1,0 +1,30 @@
+[package]
+name    = "rust-redis-bench"
+version = "0.1.0"
+edition = "2026"
+creator = "sachinSSh"
+
+[dependencies]
+# ── Async runtime ───────────────────────────────────────────
+tokio        = { version = "1", features = ["full"] }
+tokio-stream = { version = "0.1", features = ["time"] }
+
+# ── Web framework ──────────────────────────────────────────
+axum       = "0.7"
+tower-http = { version = "0.5", features = ["fs", "cors"] }
+
+# ── Redis ───────────────────────────────────────────────────
+redis = { version = "0.25", features = ["tokio-comp", "connection-manager"] }
+
+# ── Serialization ──────────────────────────────────────────
+serde      = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# ── Metrics / stats ────────────────────────────────────────
+hdrhistogram = "7"
+parking_lot  = "0.12"
+
+# ── Utilities ──────────────────────────────────────────────
+uuid   = { version = "1", features = ["v4"] }
+rand   = "0.8"
+chrono = { version = "0.4", features = ["serde"] }
