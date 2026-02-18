@@ -1,4 +1,4 @@
-![Demo](assets/ezgif-8832f7e5e03047de.gif)
+![Demo](assets/ezgif-8832f7e5e03047de (1).gif)
 
 ```bash
 # terminal 1 - start redis
@@ -20,4 +20,5 @@ curl -X POST http://localhost:3000/api/benchmark/start \
     -H "Content-Type: application/json" \
     -d '{"concurrency": 20, "duration_secs": 60, "read_pct": 70}'
 ```
+
 
