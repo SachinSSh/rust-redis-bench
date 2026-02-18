@@ -58,29 +58,46 @@ curl -X POST http://localhost:3000/api/benchmark/start \
 <table>
   <thead>
     <tr>
-      <th>Parameter</th>
+      <th>Parameter usage</th>
       <th>Description</th>
-      <th>Example</th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <td>concurrency</td>
-      <td>Number of parallel workers</td>
-      <td>20</td>
+      <td>Connection pooling</td>
+      <td>Redis connection manager with configurable pool size</td>
     </tr>
     <tr>
-      <td>duration_secs</td>
-      <td>How long the benchmark runs (seconds)</td>
-      <td>60</td>
+      <td>Realistic payloads</td>
+      <td>JSON bodies with nested fields</td>
     </tr>
     <tr>
-      <td>read_pct</td>
-      <td>Percentage of operations that are reads</td>
-      <td>70</td>
+      <td>Mixed workload</td>
+      <td>Configurable read/write ratio, multiple entity types</td>
+    </tr>
+    <tr>
+      <td>Accurate percentiles</td>
+      <td>HdrHistogram (same lib used by Prometheus)</td>
+    </tr>
+    <tr>
+      <td>Middleware-based timing</td>
+      <td>Tower layer, same pattern as production Axum apps</td>
+    </tr>
+     <tr>
+      <td>Concurrent load</td>
+      <td>Spawns N tokio tasks hittinf the server simulateneously</td>
+    </tr>
+     <tr>
+      <td>Rolling windows</td>
+      <td>metrics decay over time</td>
+    </tr>
+     <tr>
+      <td>Error tracking</td>
+      <td>displays redis timeouts</td>
     </tr>
   </tbody>
 </table>
+
 
 
 
